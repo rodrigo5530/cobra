@@ -1,0 +1,116 @@
+import pygame
+import random
+import sys
+
+# Inicializa o pygame
+pygame.init()
+
+# Configurações da tela
+LARGURA = 600
+ALTURA = 400
+TELA = pygame.display.set_mode((LARGURA, ALTURA))
+pygame.display.set_caption("Jogo da Cobrinha 🐍")
+
+# Cores
+PRETO = (0, 0, 0)
+VERDE = (0, 255, 0)
+VERMELHO = (255, 0, 0)
+BRANCO = (255, 255, 255)
+
+# Tamanho do bloco
+TAMANHO = 20
+VELOCIDADE = 10
+
+# Fonte
+fonte = pygame.font.SysFont("arial", 25)
+
+def desenhar_texto(texto, cor, x, y):
+    msg = fonte.render(texto, True, cor)
+    TELA.blit(msg, [x, y])
+
+def jogo():
+    clock = pygame.time.Clock()
+
+    # Posição inicial da cobra
+    x = LARGURA // 2
+    y = ALTURA // 2
+    dx = 0
+    dy = 0
+
+    corpo = []
+    tamanho = 1
+
+    # Maçã
+    maca_x = random.randrange(0, LARGURA - TAMANHO, TAMANHO)
+    maca_y = random.randrange(0, ALTURA - TAMANHO, TAMANHO)
+
+    pontos = 0
+    rodando = True
+
+    while rodando:
+        TELA.fill(PRETO)
+
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+            if evento.type == pygame.KEYDOWN:
+                if evento.key == pygame.K_LEFT:
+                    dx = -TAMANHO
+                    dy = 0
+                elif evento.key == pygame.K_RIGHT:
+                    dx = TAMANHO
+                    dy = 0
+                elif evento.key == pygame.K_UP:
+                    dy = -TAMANHO
+                    dx = 0
+                elif evento.key == pygame.K_DOWN:
+                    dy = TAMANHO
+                    dx = 0
+
+        x += dx
+        y += dy
+
+        # Colisão com parede
+        if x < 0 or x >= LARGURA or y < 0 or y >= ALTURA:
+            rodando = False
+
+        cabeca = [x, y]
+        corpo.append(cabeca)
+        if len(corpo) > tamanho:
+            del corpo[0]
+
+        # Colisão com o próprio corpo
+        for parte in corpo[:-1]:
+            if parte == cabeca:
+                rodando = False
+
+        # Desenha a cobra
+        for parte in corpo:
+            pygame.draw.rect(TELA, VERDE, (parte[0], parte[1], TAMANHO, TAMANHO))
+
+        # Desenha a maçã
+        pygame.draw.rect(TELA, VERMELHO, (maca_x, maca_y, TAMANHO, TAMANHO))
+
+        # Comeu a maçã
+        if x == maca_x and y == maca_y:
+            maca_x = random.randrange(0, LARGURA - TAMANHO, TAMANHO)
+            maca_y = random.randrange(0, ALTURA - TAMANHO, TAMANHO)
+            tamanho += 1
+            pontos += 1
+
+        desenhar_texto(f"Pontos: {pontos}", BRANCO, 10, 10)
+
+        pygame.display.update()
+        clock.tick(VELOCIDADE)
+
+    # Tela de game over
+    TELA.fill(PRETO)
+    desenhar_texto("GAME OVER", VERMELHO, 220, 170)
+    desenhar_texto(f"Pontos finais: {pontos}", BRANCO, 200, 210)
+    pygame.display.update()
+    pygame.time.delay(3000)
+    pygame.quit()
+
+jogo()
